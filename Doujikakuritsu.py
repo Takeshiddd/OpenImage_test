@@ -63,7 +63,7 @@ def count(Image_dict,
     return counter
 
 
-def position_data(counter): #count関数の戻り値({("classname","text": 回数、 ...})のキーをwv化して、np.arrray型の座標にして返す
+def position_data(counter):  # count関数の戻り値({("classname","text": 回数、 ...})のキーをwv化して、np.arrray型の座標にして返す
     position_data = []  # type: List[ndarray]
     for key in counter.keys():
         try:
@@ -74,6 +74,17 @@ def position_data(counter): #count関数の戻り値({("classname","text": 回�
             print("Maybe {}, {} is not in vocabulary".format(key[0], key[1]))
 
 
+def wordvec_dict(model):
+    vocab = model.wv.vocab
+    wordvec_dict = {}
+    for word in vocab.keys():
+        wordvec_dict[word] = model[word]
+    return wordvec_dict
+
+
+
+
+
 class_dict = class_dict()
 Image_dict = Image_dict(class_dict, './annotations-human-bbox/train/annotations-human-bbox.csv')
 # text_dict = {’画像ID’： [{'text': 'テキストデータ', 'position': [座標]}, {...}]}, '画像ID’： ...}
@@ -82,4 +93,4 @@ Image_dict = Image_dict(class_dict, './annotations-human-bbox/train/annotations-
 # model = word2vec.Word2Vec.load("sample2.model")
 model = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin.gz', binary=True)
 
-
+# np.savetxt('Doujikakuritsu.csv', 座標データ(np.array), delimiter=',', fmt='%f')
