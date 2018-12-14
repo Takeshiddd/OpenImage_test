@@ -41,27 +41,53 @@ def Image_dict(class_dict,
             Image_dict[row[0]].append(bbox_dict)
     return Image_dict
 
-def Text_dict(Text_bbox_PATH, imagesdir_PATH):
+# def Text_dict(Text_bbox_PATH, imagesdir_PATH):        # ウィンドウサイズを画像から取得する版
+#     Text_dict = defaultdict(list)        # example: Image_dict(class_dict(), './annotations-human-bbox/test/annotations-human-bbox.csv')      
+#     with open(Text_bbox_PATH, newline='') as csvfile:
+#         bbox_description = csv.reader(csvfile, delimiter=',', quotechar='"')
+#         for row in bbox_description:
+#             im = cv2.imread("{}/{}.jpg".format(imagesdir_PATH,row[0]))
+#             windowsize = im.shape[:2]
+#             bbox_dict = {}
+#             bbox_dict['text'] = row[-1]
+#             bbox_dict['position'] = row[1:9]
+#             bbox_dict['position'][0] = float(bbox_dict['position'][0]) / windowsize[1]
+#             bbox_dict['position'][2] = float(bbox_dict['position'][2]) / windowsize[1]
+#             bbox_dict['position'][4] = float(bbox_dict['position'][4]) / windowsize[1]
+#             bbox_dict['position'][6] = float(bbox_dict['position'][6]) / windowsize[1]
+#             bbox_dict['position'][1] = float(bbox_dict['position'][1]) / windowsize[0]
+#             bbox_dict['position'][3] = float(bbox_dict['position'][3]) / windowsize[0]
+#             bbox_dict['position'][5] = float(bbox_dict['position'][5]) / windowsize[0]
+#             bbox_dict['position'][7] = float(bbox_dict['position'][7]) / windowsize[0]
+#             Text_dict[row[0]].append(bbox_dict)
+#     return Text_dict
+
+def windowsize(windowsize_PATH):
+    with open(windowsize_PATH, newline='') as f:
+        reader = csv.reader(f, delimiter=',', quotechar='"')
+        windowsize = {}
+        for row in reader:
+            windowsize[row[0]] = (float(row[1]), float(row[2]))
+    return windowsize        #(width, hight)
+
+def Text_dict(Text_bbox_PATH, windowsize):
     Text_dict = defaultdict(list)        # example: Image_dict(class_dict(), './annotations-human-bbox/test/annotations-human-bbox.csv')
     with open(Text_bbox_PATH, newline='') as csvfile:
         bbox_description = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in bbox_description:
-            im = cv2.imread("{}/{}.jpg".format(imagesdir_PATH,row[0]))
-            windowsize = im.shape[:2]
             bbox_dict = {}
             bbox_dict['text'] = row[-1]
             bbox_dict['position'] = row[1:9]
-            bbox_dict['position'][0] = float(bbox_dict['position'][0]) / windowsize[1]
-            bbox_dict['position'][2] = float(bbox_dict['position'][2]) / windowsize[1]
-            bbox_dict['position'][4] = float(bbox_dict['position'][4]) / windowsize[1]
-            bbox_dict['position'][6] = float(bbox_dict['position'][6]) / windowsize[1]
-            bbox_dict['position'][1] = float(bbox_dict['position'][1]) / windowsize[0]
-            bbox_dict['position'][3] = float(bbox_dict['position'][3]) / windowsize[0]
-            bbox_dict['position'][5] = float(bbox_dict['position'][5]) / windowsize[0]
-            bbox_dict['position'][7] = float(bbox_dict['position'][7]) / windowsize[0]
+            bbox_dict['position'][0] = float(bbox_dict['position'][0]) / windowsize[row[0]][0]
+            bbox_dict['position'][2] = float(bbox_dict['position'][2]) / windowsize[row[0]][0]
+            bbox_dict['position'][4] = float(bbox_dict['position'][4]) / windowsize[row[0]][0]
+            bbox_dict['position'][6] = float(bbox_dict['position'][6]) / windowsize[row[0]][0]
+            bbox_dict['position'][1] = float(bbox_dict['position'][1]) / windowsize[row[0]][1]
+            bbox_dict['position'][3] = float(bbox_dict['position'][3]) / windowsize[row[0]][1]
+            bbox_dict['position'][5] = float(bbox_dict['position'][5]) / windowsize[row[0]][1]
+            bbox_dict['position'][7] = float(bbox_dict['position'][7]) / windowsize[row[0]][1]
             Text_dict[row[0]].append(bbox_dict)
     return Text_dict
-
 
 
 def inbox(Classbbox_posi,
@@ -114,15 +140,16 @@ def extend_wordvecs(wordvec_dict):   # 引数： 点後と単語ベクトルの�
 
 class_dict = class_dict()
 Image_dict = Image_dict(class_dict, './annotations-human-bbox/train-annotations-bbox.csv')
-text_dict = Text_dict('data.csv', './result_check/100_images')
+text_dict = Text_dict('result170_1201.csv', windowsize('retult_size.csv'))
 counter = count(Image_dict, text_dict)
 model = word2vec.Word2Vec.load("sample2.model")
 # model = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin.gz', binary=True)
 
 data = position_data(model, counter)
 print(data)
-with open('positiondata.csv', 'w') as file:
+with open('positiondata2.csv', 'w') as file:
    writer = csv.writer(file, lineterminator='\n')
    writer.writerows(data)
 
 
+print(text_dict)
