@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib
 from typing import Any, List
 from gensim.models import word2vec, Word2Vec
+from nltk.corpus import stopwords
 from gensim.models import KeyedVectors
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
@@ -109,16 +110,38 @@ def count(Image_dict,
                     counter[(classbbox['classname'].lower(), textbbox['text'].lower())] += 1
     return counter
 
-
 def position_data(model, counter):  # count関数の戻り値({("classname","text": 回数、 ...})のキーをwv化して、np.arrray型の座標にして返す
     position_data = []  # type: List[ndarray]
+    GSL_freq = []
+    stopWords = stopwords.words('english')
+    with open("GSL_frequency.csv", 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            GSL_freq.append(row[2])
     for key in counter.keys():
-        try:
-            data = np.array(np.r_[model[key[0]], model[key[1]], np.array([counter[key]])])
-            position_data.append(data)
-        except:
-            print("Maybe {}, {} is not in vocabulary".format(key[0], key[1]))
+        if key[0] in stopWords or key[1] in stopWords:
+            print("{} or {} is not in vocabulary".format(key[0], key[1]))
+        else:
+            if key[0] in GSL_freq and key[1] in GSL_freq:
+                try:
+                    data = np.array(np.r_[model[key[0]], model[key[1]], np.array([counter[key]])])
+                    position_data.append(data)
+                except:
+                    print("{} or {} is not in vocabulary".format(key[0], key[1]))
+            else:
+                print("{} or {} is not in vocabulary".format(key[0], key[1]))
     return position_data
+
+# def position_data(model, counter):  # count関数の戻り値({("classname","text": 回数、 ...})のキーをwv化して、np.arrray型の座標にして返す   （ストップワードとGSL考慮無し版）
+#     position_data = []  # type: List[ndarray]
+#     for key in counter.keys():
+#         try:
+#             data = np.array(np.r_[model[key[0]], model[key[1]], np.array([counter[key]])])
+#             position_data.append(data)
+#         except:
+#             print("Maybe {}, {} is not in vocabulary".format(key[0], key[1]))
+#     return position_data
+
 
 def wordvec_dict(model):
     vocab = model.wv.vocab
@@ -147,7 +170,7 @@ model = word2vec.Word2Vec.load("sample2.model")
 
 data = position_data(model, counter)
 print(data)
-with open('positiondata2.csv', 'w') as file:
+with open('positiondata_GSL_stopword.csv', 'w') as file:
    writer = csv.writer(file, lineterminator='\n')
    writer.writerows(data)
 
