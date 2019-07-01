@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib
+from tqdm import tqdm
 from typing import Any, List
 from gensim.models import word2vec, Word2Vec
 from gensim.models import KeyedVectors
@@ -8,7 +9,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 import sys, time
 import os
 import csv
-from annoy import AnnoyIndex
+from nltk.corpus import stopwords
 from collections import defaultdict
 import pprint
 import cv2
@@ -52,30 +53,6 @@ def position_count_datas(model, positions, object, text, k):
             i += 1
         return l_a_list
 
-# def position_count_datas(model, positions, object, text, k):
-#     vocab = model.wv.vocab
-#     if not object in vocab:
-#         print('{} is not in vocabulary.'.format(object))
-#         return -1
-#     elif not text in vocab:
-#         print('{} is not in vocabulary.'.format(text))
-#         return -1
-#     else:
-#         f = 400
-#         t = AnnoyIndex(f)  # 与える特徴量のベクトルの次元数を渡します
-#         i = 0
-#         position = np.array(np.r_[model[object], model[text]])
-#         for data in positions:
-#             t.add_item(i, data[0:-1])# モデルにデータをインデックスしていきます
-#             i += 1
-#         t.build(200)  # ビルドします。これ以降データのインデックスは行えません。
-#         index_list = t.get_nns_by_item(0, 100)
-#         l_a_list = []
-#         for index in index_list:
-#             data = positions[index]
-#             l_a_list.append((np.linalg.norm(data[0:-1] - position), data[-1]))
-#         return l_a_list
-
 def Probability(l_a_list, sigma2 = 1):
     sum = 0
     for l_a in l_a_list:
@@ -84,24 +61,42 @@ def Probability(l_a_list, sigma2 = 1):
     return P
 
 
+vocab = []
+stopWords = stopwords.words('english')
+with open("GSL_frequency.csv", 'r') as f:
+    reader = csv.reader(f)
+    for row in reader:
+        vocab.append(row[2])
+for word in stopWords:
+    if word in vocab:
+        vocab.remove(word)
+
+
+
 positions = positions('positiondata_GSL_stopword.csv')
 model = word2vec.Word2Vec.load("sample2.model")
-while 1:
-    print('object?')
-    object = input()
-    print('text?')
-    text = input()
-    t0 = time.time()
-    pds = position_count_datas(model, positions, object, text, k=5)
-    print(Probability(pds))
-    if pds != -1:
-        P = Probability(pds)
-        t1 = time.time()
-        print(object, text,P)
-        print(t1-t0)
+p_dict = {}
+for object in tqdm(vocab):
+    for text in vocab:
+        pds = position_count_datas(model, positions, object, text, k=5)
+        if pds != -1:
+            P = Probability(pds)
+            p_dict[(object,text)] = P
 
 
+with open("p_dict.csv", 'w') as f:
+    writer = csv.writer(f, lineterminator='\n')
+    list = []
+    for key in p_dict.keys():
+        list.append([key[0], key[1], str(p_dict[key])])
+    writer.writerows(list)
 
+i = 0
+while i < 50:
+    max_k = max(p_dict, key=p_dict.get)
+    print(max_k, p_dict[max_k])
+    i += 1
+    del p_dict[max_k]
 #100枚の果果 ※間違い
 # 'bus', 'apple' '1.7798433454552452e-253'     'bus', 'bus' 3.902964949033245e-240         'bottle', 'wine' 4.859922918881773e-196
 # 'bottle', 'tree' 1.4839287391829614e-226    'bottle', 'track' 2.4607677137211937e-204

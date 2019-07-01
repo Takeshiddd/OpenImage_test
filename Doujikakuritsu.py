@@ -3,17 +3,17 @@ import matplotlib
 from typing import Any, List
 from gensim.models import word2vec, Word2Vec
 from nltk.corpus import stopwords
-from gensim.models import KeyedVectors
+import csv
+from collections import defaultdict
+from numpy.core.multiarray import ndarray
+
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 import sys, time
 import os
-import csv
-from collections import defaultdict
+
 import pprint
 import cv2
-from numpy.core.multiarray import ndarray
-
 matplotlib.use('TKAgg')
 import matplotlib.pyplot as plt
 import skimage.io as io
@@ -43,7 +43,7 @@ def Image_dict(class_dict,
     return Image_dict
 
 # def Text_dict(Text_bbox_PATH, imagesdir_PATH):        # ウィンドウサイズを画像から取得する版
-#     Text_dict = defaultdict(list)        # example: Image_dict(class_dict(), './annotations-human-bbox/test/annotations-human-bbox.csv')      
+#     Text_dict = defaultdict(list)        # example: Image_dict(class_dict(), './annotations-human-bbox/test/annotations-human-bbox.csv')
 #     with open(Text_bbox_PATH, newline='') as csvfile:
 #         bbox_description = csv.reader(csvfile, delimiter=',', quotechar='"')
 #         for row in bbox_description:
@@ -141,6 +141,9 @@ def position_data(model, counter):  # count関数の戻り値({("classname","tex
 #         except:
 #             print("Maybe {}, {} is not in vocabulary".format(key[0], key[1]))
 #     return position_data
+
+
+
 
 
 def wordvec_dict(model):
