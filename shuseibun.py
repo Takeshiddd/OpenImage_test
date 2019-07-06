@@ -20,7 +20,7 @@ def positions(positiondata_PATH):
     return np.array(positions)
 
 
-positions = positions('positiondata2.csv')
+positions = positions('positiondata_GSL_stopword.csv')
 new_positions = []
 for row in positions:
     counter = row[-1]

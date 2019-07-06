@@ -56,7 +56,7 @@ def GSL_words_positions(model, GSL_PATH):
         if not word in wv_vocab:
             vocab.remove(word)
 
-    vocab = vocab[0:-550]
+    # vocab = vocab[0:-550]
 
     GSL_words = []
     GSL_positions = []
@@ -69,6 +69,12 @@ def GSL_words_positions(model, GSL_PATH):
 def k_nearest_neighbor(positions, GSL_positions, k):
     print('loading positiondata and fitting.')
     nbrs = NearestNeighbors(n_neighbors=k, algorithm='kd_tree').fit(positions[:,0:-1])
+    distances, indices = nbrs.kneighbors(GSL_positions)
+    return distances, indices
+
+def k_nearest_neighbor_joint(positions, GSL_positions, k):
+    print('loading positiondata and fitting.')
+    nbrs = NearestNeighbors(n_neighbors=k, algorithm='kd_tree').fit(positions[:,0:200])
     distances, indices = nbrs.kneighbors(GSL_positions)
     return distances, indices
 
@@ -91,18 +97,15 @@ def calculate_probability(distances, count_data, sigma2, dim):
     stop = len(count_data)
     for i in tqdm(range(stop)):
         P.append(np.dot(e[i],count_data[i]))
-    P = np.array(P / (2 *sigma2 *np.pi) ** (dim / 2))
+    P = np.array(P) / (2 *sigma2 *np.pi) ** (dim / 2)
     return P
 
-    def calculate_joint_probability(distances, sigma2, dim):
-        print('calculating probability')
+def calculate_joint_probability(distances, sigma2, dim):
+    print('calculating probability')
     l2 = np.power(distances, 2)
     beki = - l2 / 2 / sigma2
     e = np.exp(beki)
-    P = []
-    stop = len(distances)
-    for i in tqdm(range(stop)):
-        P = np.prod(e, axis=1) / (2 *sigma2 *np.pi) ** (dim / 4)
+    P = np.sum(e, axis=1) / (2 *sigma2 *np.pi) ** (dim / 4)
     return P
 
 def output_result(result_PATH, GSL_words, P):
@@ -117,10 +120,16 @@ def output_result(result_PATH, GSL_words, P):
             writer.writerow([GSL_words[i][0], GSL_words[i][1], P[i]])
     print('done')
 
+def object_position_list(array, n):
+    list = []
+    for i in range(len(array)):
+        if i % n == 0:
+            list.append(array[i].tolist())
+    return list
 # main #
 model = word2vec.Word2Vec.load("sample2.model")
-GSL_words, GSL_positions = GSL_words_positions(model, "GSL_frequency.csv")
-positions = positions('positiondata_reduced_1_.csv')
+GSL_words, GSL_positions = GSL_words_positions(model, "GSL_frequency_quite_reduced_for_test.csv")
+positions = positions('positiondata_quite_reduced_for_test_.csv')
 distances, indices = k_nearest_neighbor(positions, GSL_positions, 5)
 count_data = count(positions, indices)
 sigma2 = 1
@@ -128,14 +137,14 @@ dim = 400
 P = calculate_probability(distances, count_data, sigma2, dim)
 
 # 条件付き確率の分母を計算 #
-distances, indices = k_nearest_neighbor(positions, list(set(GSL_positions[:,0:200])), 5)
+distances, indices = k_nearest_neighbor_joint(positions, object_position_list(np.array(GSL_positions)[:,0:200], 37), 5)
 P_joint = calculate_joint_probability(distances, sigma2, dim)
 
-# 条件付き確率を計算 #````````````````````````````````````````````````````
+# 条件付き確率を計算 #
 j = 0
 for i in range(len(P)):
     P[i] = P[i] / P_joint[j]
-    if j%1545 == 0:
+    if i%1545 == 0:
         j+=1
 
 # result_PATH = 'Word_pare_P_sigma{}.csv'.format(sigma2)

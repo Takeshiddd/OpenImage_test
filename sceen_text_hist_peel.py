@@ -24,13 +24,16 @@ def inpeek(x, y, box):  # 引数： bboxのポジション（[Xmim, Xmax, Ymin, 
     else:
         return False
 
-
-xy_positions = positions('3d_positiondata_remake.csv')
-obj_word_positions = positions('positiondata_tyuhuku.csv')
+words = []
+x_positions = positions('shuseibumtext_posi.csv')
+with open('result170_1201.csv', newline='') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+    for row in reader:
+        words.append(row[-1])
 model = word2vec.Word2Vec.load("sample2.model")
 
-x1 = -10.6694
-x2 = -10.4499
+x1 = -0.532
+x2 = 0.769
 mat = np.c_[xy_positions, obj_word_positions]
 s = []
 for row in mat:
