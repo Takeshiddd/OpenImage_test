@@ -128,8 +128,8 @@ def object_position_list(array, n):
     return list
 # main #
 model = word2vec.Word2Vec.load("sample2.model")
-GSL_words, GSL_positions = GSL_words_positions(model, "GSL_frequency_quite_reduced_for_test.csv")
-positions = positions('positiondata_quite_reduced_for_test_.csv')
+GSL_words, GSL_positions = GSL_words_positions(model, "GSL_frequency.csv")
+positions = positions('positiondata_reduced_1_.csv')
 distances, indices = k_nearest_neighbor(positions, GSL_positions, 5)
 count_data = count(positions, indices)
 sigma2 = 1
@@ -148,5 +148,5 @@ for i in range(len(P)):
         j+=1
 
 # result_PATH = 'Word_pare_P_sigma{}.csv'.format(sigma2)
-result_PATH = 'test_word_pare_joint.csv'
+result_PATH = 'word_pare_joint.csv'
 output_result(result_PATH, GSL_words, P)
